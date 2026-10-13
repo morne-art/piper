@@ -1,0 +1,44 @@
+{
+  "owner": "Morne",
+  "assistant_name": "P.I.P.E.R",
+  "language": "English",
+  "voice_lang": "en-GB",
+  "voice": "bf_emma",
+  "voice_speed": 1.15,
+  "knowledge_folder": "knowledge",
+  "port": 8790,
+  "subtitle": "Personal Intelligence, Planning & Execution Resource",
+  "wiki_online": true,
+  "wiki_save": true,
+  "wiki_lang": "en",
+  "brain": "auto",
+  "remote": {
+    "enabled": true,
+    "pin": "880202"
+  },
+  "idle_learning": true,
+  "companion": {
+    "enabled": true,
+    "hotkey": "ctrl+alt",
+    "whisper": "base.en",
+    "show_cursor": "when_active"
+  },
+  "vision_model": "qwen2.5vl:7b",
+  "local_model": "Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+  "web_search": true,
+  "ollama_model": "qwen2.5:7b",
+  "study": true,
+  "study_pages": 40,
+  "study_delay": 1.0,
+  "study_topics": [
+    "Isle of Man",
+    "iPhone and iOS",
+    "Windows 11",
+    "Gmail",
+    "Google Calendar",
+    "Google Drive",
+    "Google Docs",
+    "Google Sheets"
+  ],
+  "owner_say": "Mornay"
+}

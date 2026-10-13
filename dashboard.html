@@ -1,0 +1,356 @@
+<!doctype html><html lang="en"><head>
+<link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon.svg"><meta name="theme-color" content="#020a12"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="apple-touch-icon" href="/icon.svg"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>P.I.P.E.R.</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030812;--c:#3fe6ff;--c2:#1aa7c4;--dim:rgba(63,230,255,.45);--faint:rgba(63,230,255,.12);--amber:#ffb23f;--ok:#3dffa0;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:inherit}html,body{height:100%;margin:0}
+body{background:radial-gradient(ellipse at center,#06152a 0%,var(--bg) 70%);color:var(--c);font-family:"Share Tech Mono",ui-monospace,monospace;overflow:hidden}
+canvas#core{position:fixed;inset:0;width:100%;height:100%}
+.hud{position:fixed;inset:0;pointer-events:none;padding:22px 26px;display:grid;grid-template-columns:minmax(220px,300px) 1fr minmax(220px,300px);grid-template-rows:auto 1fr auto auto;gap:14px}
+.hud>*{pointer-events:auto}
+h1{font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:.35em;margin:0;font-size:26px;text-shadow:0 0 18px var(--c)}
+.sub{color:var(--dim);font-size:12px;margin-top:6px}
+.panel{border:1px solid var(--faint);background:rgba(3,14,28,.55);backdrop-filter:blur(3px);padding:12px 14px;border-radius:2px;position:relative}
+.panel::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:1px solid var(--c);border-left:1px solid var(--c)}
+.ph{font-family:Orbitron;font-size:10px;letter-spacing:.3em;color:var(--dim);margin-bottom:8px}
+.tr{grid-column:3;text-align:right}.clock{font-family:Orbitron;font-size:30px;text-shadow:0 0 12px var(--c)}
+.conn{list-style:none;padding:0;margin:8px 0 0;font-size:12px}.conn li{display:flex;justify-content:flex-end;gap:8px;align-items:center;margin:3px 0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}.dot.off{background:var(--amber);box-shadow:0 0 8px var(--amber);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.15}}
+.left{grid-column:1;grid-row:2;align-self:start;max-height:56vh;overflow:hidden}
+.log div{font-size:12px;line-height:1.55;opacity:0;transform:translateX(-6px);transition:.4s}.log div.in{opacity:1;transform:none}
+.log div::before{content:"› ";color:var(--c2)}
+.right{grid-column:3;grid-row:2;align-self:start}
+.stat{margin:9px 0;font-size:12px}.stat .row{display:flex;justify-content:space-between}
+.bar{height:3px;background:var(--faint);margin-top:4px}.bar i{display:block;height:100%;background:var(--c);box-shadow:0 0 8px var(--c);width:0;transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
+.chip{display:inline-block;margin-top:10px;border:1px solid var(--amber);color:var(--amber);padding:4px 9px;font-size:11px;box-shadow:0 0 10px rgba(255,178,63,.3)}
+.figs{grid-column:1/4;grid-row:3;display:flex;justify-content:center;gap:clamp(18px,5vw,70px)}
+.fig b{display:block;font-family:Orbitron;font-size:clamp(20px,3vw,34px);font-weight:600;text-shadow:0 0 14px var(--c)}.fig span{font-size:11px;color:var(--dim)}
+.bottom{grid-column:1/4;grid-row:4;display:flex;gap:14px;align-items:center}
+button{font-family:Orbitron;letter-spacing:.25em;font-size:12px;color:var(--bg);background:var(--c);border:0;padding:12px 22px;cursor:pointer;box-shadow:0 0 22px var(--c);white-space:nowrap}
+button.ghost{background:transparent;color:var(--c);border:1px solid var(--c);box-shadow:none}
+button.live{background:var(--amber);box-shadow:0 0 22px var(--amber)}
+.ticker{flex:1;overflow:hidden;white-space:nowrap;border-top:1px solid var(--faint);border-bottom:1px solid var(--faint);padding:8px 0;font-size:12px;color:var(--dim)}
+.ticker span{display:inline-block;padding-left:100%;animation:tick 40s linear infinite}@keyframes tick{to{transform:translateX(-100%)}}
+.q{font-family:Orbitron;font-size:11px;letter-spacing:.2em;white-space:nowrap}
+#say{position:fixed;left:50%;top:76%;transform:translateX(-50%);max-width:min(680px,90vw);text-align:center;font-size:15px;text-shadow:0 0 10px var(--c);pointer-events:none;min-height:1.5em}
+.mode{color:var(--amber)}
+.fx{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.75))}
+#ask{display:flex;gap:8px}#ask input{background:transparent;border:1px solid var(--faint);color:var(--c);font-family:inherit;padding:10px;width:200px}
+@media (max-width:760px){
+ .hud{display:flex;flex-direction:column;gap:10px;padding:max(14px,env(safe-area-inset-top)) 16px 190px;height:auto;min-height:100%;overflow:auto}
+ h1{font-size:22px}#subt,#mode,.left,.figs,.ticker,.q{display:none}
+ .hud>div:first-child{display:flex;flex-direction:column}.tr{position:absolute;right:16px;top:max(14px,env(safe-area-inset-top));text-align:right}
+ .clock{font-size:22px}.conn{font-size:11px}.conn li{justify-content:flex-end}
+ .right{margin-top:54vh;margin-bottom:60px}
+ .bottom{position:fixed;left:0;right:0;bottom:0;padding:12px 14px max(14px,env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%);display:grid;grid-template-columns:1fr 1fr;gap:8px;z-index:5}
+ .bottom form{grid-column:1/3;display:flex;gap:8px}.bottom form input{flex:1;min-width:0}.bottom button{padding:14px 8px}
+ #say{top:auto;bottom:168px;font-size:16px;z-index:4;width:92vw;background:rgba(2,10,18,.82);padding:6px 4px;border-radius:6px}
+ #say:empty{display:none}
+ #drawer{left:8px!important;right:8px!important;top:max(8px,env(safe-area-inset-top))!important;bottom:8px!important;width:auto!important;max-width:none!important;max-height:none!important;overflow:auto;z-index:30!important}
+}
+#drawer{position:fixed;right:22px;bottom:84px;width:min(380px,90vw);display:none;z-index:5;background:rgba(3,14,28,.92)}#drawer.open{display:block}
+#drawer select,#drawer input#kfolder,#wpath{width:100%;background:transparent;border:1px solid var(--faint);color:var(--c);font-family:inherit;padding:8px;margin:6px 0}#drawer select option{background:#061224}
+#drawer button{margin:6px 0}.lbl{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--dim)}.lbl input{flex:1;accent-color:var(--c)}
+#drawer{max-height:78vh;overflow:auto;width:min(440px,92vw)}
+.tabs{display:flex;gap:4px;margin-bottom:10px}.tab{flex:1;padding:8px 4px;font-size:10px;background:transparent;color:var(--dim);border:1px solid var(--faint);box-shadow:none;margin:0}.tab.on{color:var(--bg);background:var(--c)}
+.tp{display:none}.tp.on{display:block}
+.card{border:1px solid var(--faint);padding:10px;margin:8px 0}.card h4{margin:0;font-family:Orbitron;font-size:12px;letter-spacing:.15em;display:flex;align-items:center;gap:8px}
+.card .meta{font-size:11px;color:var(--dim);margin:4px 0}.card .err{color:var(--amber);font-size:11px}
+.card input,.card textarea{width:100%;background:transparent;border:1px solid var(--faint);color:var(--c);font-family:inherit;padding:7px;margin:4px 0;font-size:12px}
+.card details{font-size:11px;color:var(--dim);margin:6px 0}.card summary{cursor:pointer;color:var(--c2)}
+.card .btns{display:flex;gap:6px;flex-wrap:wrap}.card .btns button{padding:7px 10px;font-size:10px}
+.lnk{display:inline-block;margin:6px 0;color:var(--c);font-size:12px;border:1px solid var(--c);padding:6px 10px;text-decoration:none}.lnk:hover{background:var(--faint)}
+.drop{display:block;border:1px dashed var(--c);padding:16px;text-align:center;cursor:pointer;margin:6px 0;font-size:12px}.drop.over{background:var(--faint)}
+#tp textarea,#tk textarea{width:100%;background:transparent;border:1px solid var(--faint);color:var(--c);font-family:inherit;padding:7px;margin:6px 0;font-size:12px}
+#sqlout{overflow:auto;max-height:220px;font-size:11px}#sqlout table{border-collapse:collapse}#sqlout td,#sqlout th{border:1px solid var(--faint);padding:3px 6px;white-space:nowrap;text-align:left}#sqlout th{color:var(--dim)}
+.tbl{cursor:pointer;color:var(--c)}.tbl:hover{text-decoration:underline}
+.chk{display:block;font-size:12px;margin:5px 0;cursor:pointer}.chk input{accent-color:var(--c);margin-right:6px}
+#bsel,#osel{width:100%;background:var(--bg);border:1px solid var(--faint);color:var(--c);font-family:inherit;padding:7px;margin:6px 0}#tb textarea{width:100%;background:transparent;border:1px solid var(--faint);color:var(--c);font-family:inherit;padding:7px;margin:6px 0;font-size:12px}
+body.thinking #say{animation:think 1.2s ease-in-out infinite}@keyframes think{50%{opacity:.35}}
+#mbarw{height:10px;border:1px solid var(--faint);margin:8px 0}#mbar{height:100%;width:0;background:var(--c);transition:width .08s}
+.addconn{cursor:pointer;opacity:.45;font-size:11px;margin-top:4px}.addconn:hover{opacity:1}
+</style></head><body>
+<canvas id="core"></canvas><div class="fx"></div>
+<div class="hud">
+ <div><h1>P.I.P.E.R</h1><div class="sub" id="subt">Personal Intelligence, Planning &amp; Execution Resource</div><div class="sub" id="date"></div><div class="sub" id="mode"></div></div>
+ <div></div>
+ <div class="tr"><div class="clock" id="clock">--:--:--</div><ul class="conn" id="conn"></ul></div>
+ <div class="panel left"><div class="ph">ACTIVITY LOG</div><div class="log" id="log"></div></div>
+ <div></div>
+ <div class="panel right"><div class="ph">TODAY</div><div id="stats"></div><div id="due"></div></div>
+ <div class="figs" id="figs"></div>
+ <div class="bottom">
+  <button id="brief">BRIEF ME</button>
+  <button class="ghost" id="mic" title="Talk to Piper">🎙 TALK</button>
+  <form id="ask" onsubmit="return false"><input id="q" placeholder="ask Piper…" aria-label="Ask Piper"><button class="ghost" id="go">ASK</button></form>
+  <div class="ticker"><span id="ticker"></span></div>
+  <div class="q">WHAT SHOULD I HANDLE FIRST?</div>
+  <button class="ghost" id="gear" title="Settings">⚙</button>
+ </div>
+</div>
+<div id="say"></div>
+<div id="drawer" class="panel">
+ <div class="tabs"><button class="tab on" data-t="tc">CONNECTIONS</button><button class="tab" data-t="tv">VOICE</button><button class="tab" data-t="tk">KNOWLEDGE</button><button class="tab" data-t="tb">BRAIN</button></div>
+ <div id="tc" class="tp on"><div class="sub" id="vault"></div><div id="cards"></div>
+  <button class="ghost" id="refall" style="width:100%">⟳ REFRESH ALL NOW</button></div>
+ <div id="tv" class="tp">
+  <select id="vsel"><option>bm_george</option></select>
+  <label class="lbl">Speed <input type="range" id="vspeed" min="0.8" max="1.2" step="0.05" value="1"></label>
+  <div class="btns" style="display:flex;gap:6px"><button class="ghost" id="vtest">▶ PREVIEW</button><button id="vdef">★ SET AS DEFAULT</button></div>
+  <div class="ph" style="margin-top:14px">MICROPHONE</div>
+  <div class="sub">Press TEST and speak. The bar should jump when you talk.</div>
+  <button class="ghost" id="mtest">🎙 TEST MICROPHONE</button>
+  <div id="mbarw"><div id="mbar"></div></div>
+  <div class="sub" id="mstat"></div>
+  <div class="sub" id="vdefl"></div><div class="sub" id="vstat"></div>
+  <label class="sub" style="display:block;margin-top:10px">VOICE ENGINE</label>
+  <select id="veng" class="fld"><option value="auto">Automatic: fast natural voice (recommended)</option>
+   <option value="neural">Always the Kokoro voice (may lag on slower PCs)</option><option value="windows">Always the instant Windows voice (no lag)</option></select>
+  <div class="sub" id="vverd" style="margin-top:6px"></div>
+  <div class="btns"><button class="ghost" id="vcheck">⏱ SPEED CHECK</button></div></div>
+ <div id="tb" class="tp">
+  <div class="sub" id="bstat">Checking…</div>
+  <div class="ph" style="margin-top:12px">WHICH BRAIN</div>
+  <select id="bsel" class="fld"><option value="auto">Automatic: Ollama, then built-in</option><option value="ollama">Ollama on this PC</option><option value="builtin">Built-in brain (inside Piper's folder)</option><option value="off">Off: pattern answers only</option></select>
+  <div id="omwrap"><div class="sub">Ollama model:</div><select id="osel" class="fld"></select></div>
+  <button class="ghost" id="breset">NEW CONVERSATION</button>
+  <div class="ph" style="margin-top:12px">LONG-TERM MEMORY</div>
+  <div class="sub" id="mems">…</div>
+  <div class="sub">Say "remember that…", "forget…" or "what do you remember about me?". Saved in brain\piper_memory.json, backed up daily.</div>
+  <div class="ph" style="margin-top:12px">PIPER'S SCRIPT</div>
+  <div class="sub">Personality, rules, fixed answers and example replies, in plain English. Saved changes work immediately.</div>
+  <textarea id="script" rows="14" spellcheck="false"></textarea><button id="ssave">SAVE SCRIPT</button><span class="sub" id="sstat"></span>
+ </div>
+ <div id="tk" class="tp">
+  <div class="sub">Paste a folder path, e.g. C:\Users\Morne\Documents\Business. PDFs, Word, notes and CSVs are read and kept on this PC.</div>
+  <input id="kfolder" spellcheck="false"><button id="learn">LEARN</button><div class="sub" id="kstat"></div>
+  <div class="ph" style="margin-top:14px">UPLOAD</div>
+  <div class="sub">Upload a ZIP (SQL export, SQLite database, instructions), or any single file. ZIPs are unpacked, SQL exports restored, and everything learned automatically. Databases are opened read-only.</div>
+  <label class="drop" id="drop">⇪ Click or drop a file here<input type="file" id="upfile" hidden></label><div class="sub" id="upstat"></div>
+  <div class="ph" style="margin-top:14px">WIKIPEDIA</div>
+  <div class="sub" id="wstat">Checking…</div>
+  <label class="chk"><input type="checkbox" id="won"> Look things up on Wikipedia when online</label>
+  <label class="chk"><input type="checkbox" id="wsave"> Remember what I look up (works offline later)</label>
+  <div class="sub">ZIM files (Kiwix) placed in Piper's wiki folder are used automatically, with no import needed. ZIMs stored elsewhere: paste the folder below. Other data sets (.xml.bz2, .jsonl, .csv, .parquet) are imported.</div>
+  <input id="wpath" class="fld" spellcheck="false" placeholder="C:\Users\Morne\Downloads\enwiki-latest-pages-articles.xml.bz2"><button class="ghost" id="wimp">IMPORT FROM THIS PC</button>
+  <div class="ph" style="margin-top:14px">DATABASE</div><div id="tables" class="sub">No database yet.</div>
+  <textarea id="sql" rows="3" spellcheck="false" placeholder="SELECT * FROM orders LIMIT 10"></textarea><button class="ghost" id="runsql">RUN (READ-ONLY)</button>
+  <div id="sqlout"></div></div>
+</div>
+<audio id="audio"></audio>
+<script>document.write('<script src="piper_data.js?v='+Date.now()+'"><\/script>')</script>
+<script>
+// ---------- data ----------
+const D = window.PIPER_DATA || {greeting:"Good morning.",generated:"no data",mode:"none",connectors:[],log:["piper_data.js missing: run start-piper.bat"],instagram:{},priorities:[],brief:["No brief yet."],closer:"What should I handle first?"};
+const $=id=>document.getElementById(id), fmt=n=>n>=1e3?(n/1e3).toFixed(n>=1e4?0:1)+"k":String(n);
+$("date").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+$("mode").innerHTML=`data: ${D.generated} · <span class="mode">${String(D.mode||"").replace(/[<>&]/g,"")}</span>`;
+setInterval(()=>$("clock").textContent=new Date().toLocaleTimeString([], {hour12:false}),250);
+$("conn").innerHTML=D.connectors.length?D.connectors.map(c=>`<li title="${c.state}">${c.name} <span class="dot"></span></li>`).join(""):"";
+$("conn").insertAdjacentHTML("beforeend",`<li class="addconn" title="Connect accounts in settings">+ connect</li>`);
+document.querySelector(".addconn").onclick=()=>{$("gear").click();document.querySelector('.tab[data-t="tc"]').click()};
+D.log.forEach((l,i)=>{const d=document.createElement("div");d.textContent=l;$("log").appendChild(d);setTimeout(()=>d.classList.add("in"),600+i*550)});
+const ig=D.instagram||{},pct=(a,b)=>a&&b?a/b:0;
+if(D.assistant)document.querySelector("h1").textContent=D.assistant;if(D.subtitle)$("subt").textContent=D.subtitle;document.title=D.assistant||"P.I.P.E.R";
+const T=D.today||{};
+$("stats").innerHTML=[["Where",T.location],["Weather now",T.weather],["Today",T.today],["Next",T.next_event||(T.events===0?"nothing booked":null)],["Unread mail",T.unread],["Top priority",T.priority],["Instagram",T.followers!=null?T.followers.toLocaleString()+" followers":null]]
+ .filter(([k,v])=>v!=null&&v!=="").map(([k,v])=>`<div class="stat"><div class="row"><span>${k}</span><span style="text-align:right;max-width:62%">${String(v).replace(/[<>&]/g,"")}</span></div></div>`).join("")||`<div class="sub">Connect accounts with ⚙ to see your day here.</div>`;
+const topPost=(ig.top_posts||[]).slice().sort((a,b)=>b.reach-a.reach)[0];
+$("figs").innerHTML=[[T.weather&&T.weather.match(/-?\d+°C/)?.[0],"outside"],[T.events,"events today"],[T.unread,"unread"],[(D.priorities||[]).length,"priorities"],[T.memories,"things I know about you"],[T.followers,"Instagram"]]
+ .filter(([v])=>v!=null).map(([v,l])=>`<div class="fig"><b>${v}</b><span>${l}</span></div>`).join("");
+$("ticker").textContent=[...(D.brief||[]).slice(1,-1),...(D.priorities||[]).map((p,i)=>`PRIORITY ${i+1}: ${p}`),D.closer].filter(Boolean).join("   ◆   ");
+
+// ---------- sphere ----------
+const cv=$("core"),cx=cv.getContext("2d");let W,H,DPR;
+function size(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0)}size();addEventListener("resize",size);
+const N=680,P=[],ga=Math.PI*(3-Math.sqrt(5));for(let i=0;i<N;i++){const y=1-i/(N-1)*2,rr=Math.sqrt(1-y*y),t=ga*i;P.push([Math.cos(t)*rr,y,Math.sin(t)*rr])}
+let speaking=false,env=0,t0=performance.now();
+function frame(now){const t=(now-t0)/1000;cx.clearRect(0,0,W,H);
+ const mob=W<760,X=W/2,Y=mob?H*0.33:H*0.46,R=mob?W*0.3:Math.min(W,H)*0.2;
+ const level=readLevel();const target=speaking?(level>=0?Math.min(1,0.18+level*4):0.55+0.45*Math.abs(Math.sin(t*9)*Math.sin(t*3.3+1))):0.08+0.05*Math.sin(t*1.4);env+=(target-env)*0.18;
+ const s=R*(1+env*0.12);
+ // glow
+ let g=cx.createRadialGradient(X,Y,0,X,Y,s*2.2);g.addColorStop(0,`rgba(63,230,255,${0.25+env*.35})`);g.addColorStop(.4,"rgba(26,167,196,.08)");g.addColorStop(1,"rgba(0,0,0,0)");cx.fillStyle=g;cx.fillRect(0,0,W,H);
+ // rays
+ cx.strokeStyle="rgba(63,230,255,.05)";cx.lineWidth=1;for(let i=0;i<48;i++){const a=i/48*Math.PI*2+t*.02;cx.beginPath();cx.moveTo(X+Math.cos(a)*s*1.25,Y+Math.sin(a)*s*1.25);cx.lineTo(X+Math.cos(a)*s*2.6,Y+Math.sin(a)*s*2.6);cx.stroke()}
+ // tick ring
+ for(let i=0;i<120;i++){const a=i/120*Math.PI*2,l=i%10?4:10;cx.strokeStyle=i%10?"rgba(63,230,255,.3)":"rgba(63,230,255,.8)";cx.beginPath();cx.moveTo(X+Math.cos(a)*s*1.95,Y+Math.sin(a)*s*1.95);cx.lineTo(X+Math.cos(a)*(s*1.95+l),Y+Math.sin(a)*(s*1.95+l));cx.stroke()}
+ // dashed arcs
+ [[1.45,.3,[6,8]],[1.62,-.18,[2,6]],[1.78,.1,[18,10]]].forEach(([k,sp,d],i)=>{cx.setLineDash(d);cx.strokeStyle=`rgba(63,230,255,${.35-i*.07})`;cx.lineWidth=1.2;cx.beginPath();cx.arc(X,Y,s*k,t*sp,t*sp+Math.PI*1.4);cx.stroke()});cx.setLineDash([]);
+ // points
+ const ry=t*.25,rx=0.42,cr=Math.cos(ry),sr=Math.sin(ry),cxr=Math.cos(rx),sxr=Math.sin(rx);
+ for(const [px,py,pz] of P){let x=px*cr+pz*sr,z=-px*sr+pz*cr,y=py*cxr-z*sxr;z=py*sxr+z*cxr;const j=1+env*0.08*Math.sin(px*9+t*7);const a=(z+1.2)/2.2;
+  cx.fillStyle=`rgba(${120+a*135|0},${230},255,${0.15+a*0.75})`;cx.beginPath();cx.arc(X+x*s*j,Y+y*s*j,0.6+a*1.3,0,7);cx.fill()}
+ // core
+ const cs=s*(0.22+env*0.18);g=cx.createRadialGradient(X,Y,0,X,Y,cs);g.addColorStop(0,"rgba(255,255,255,.95)");g.addColorStop(.3,"rgba(63,230,255,.8)");g.addColorStop(1,"rgba(63,230,255,0)");cx.fillStyle=g;cx.beginPath();cx.arc(X,Y,cs,0,7);cx.fill();
+ // orbit ring + marker
+ cx.save();cx.translate(X,Y);cx.rotate(-0.35);cx.strokeStyle="rgba(63,230,255,.45)";cx.lineWidth=1;cx.beginPath();cx.ellipse(0,0,s*1.55,s*.42,0,0,7);cx.stroke();
+ const oa=t*.8,mx=Math.cos(oa)*s*1.55,my=Math.sin(oa)*s*.42;g=cx.createRadialGradient(mx,my,0,mx,my,9);g.addColorStop(0,"#fff");g.addColorStop(1,"rgba(63,230,255,0)");cx.fillStyle=g;cx.beginPath();cx.arc(mx,my,9,0,7);cx.fill();cx.restore();
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+
+// ---------- voice + brain ----------
+const SERVER=location.protocol.startsWith("http");let VENGINE="neural";
+let AC=null,analyser=null,buf=null,curSrc=null,stopFlag=false,serverVoice=SERVER;
+function audio(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();analyser=AC.createAnalyser();analyser.fftSize=1024;buf=new Float32Array(analyser.fftSize);analyser.connect(AC.destination)}if(AC.state==="suspended")AC.resume();return AC}
+function readLevel(){if(!analyser||!curSrc)return -1;analyser.getFloatTimeDomainData(buf);let s=0;for(const v of buf)s+=v*v;return Math.sqrt(s/buf.length)}
+function caption(t){$("say").textContent=t||""}
+function setSpeaking(on){speaking=on;const b=$("brief");b.textContent=on?"STOP":"BRIEF ME";b.classList.toggle("live",on)}
+function stopAll(){stopFlag=true;try{curSrc&&curSrc.stop()}catch(e){}curSrc=null;if("speechSynthesis"in window)speechSynthesis.cancel();setSpeaking(false);caption("")}
+async function fetchWav(text){const r=await fetch("/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});if(!r.ok)throw new Error("tts "+r.status);return audio().decodeAudioData(await r.arrayBuffer())}
+function playBuf(ab){return new Promise(res=>{const s=AC.createBufferSource();s.buffer=ab;s.connect(analyser);curSrc=s;s.onended=()=>{if(curSrc===s)curSrc=null;res()};s.start()})}
+// natural voice: synthesises sentence N+1 while sentence N is playing, so it flows without gaps
+// natural voice: synthesises sentence N+1 while sentence N is playing. If one sentence fails it is spoken by the browser voice and the rest carry on in the neural voice.
+async function speakNeural(list){stopFlag=false;setSpeaking(true);const get=t=>fetchWav(t).catch(e=>null);let next=get(list[0]),fails=0;
+ for(let i=0;i<list.length;i++){const ab=await next;if(stopFlag)return;if(i+1<list.length)next=get(list[i+1]);caption(list[i]);/* shown as its audio starts */
+  if(ab){await playBuf(ab)}else{fails++;await speakLine(list[i])}if(stopFlag)return;await new Promise(r=>setTimeout(r,140))}
+ setSpeaking(false);caption("");if(fails===list.length)throw new Error("neural voice failed")}
+function speakLine(t){return new Promise(res=>{if(!("speechSynthesis"in window))return res();const u=new SpeechSynthesisUtterance(t);u.voice=pickVoice();u.onend=u.onerror=res;speechSynthesis.speak(u)})}
+function pickVoice(){const v=speechSynthesis.getVoices();
+ const loc=v.filter(x=>x.localService);   // voices on this PC: no internet round trip, so no delay
+ for(const w of ["George","Hazel","Ryan","Susan"]){const f=loc.find(x=>x.name.includes(w)&&/en-GB/i.test(x.lang));if(f)return f}
+ const lg=loc.find(x=>/en-GB/i.test(x.lang));if(lg)return lg;const want=["Ryan Online","Thomas Online","Google UK English Male","George","Daniel","Arthur"];for(const w of want){const f=v.find(x=>x.name.includes(w));if(f)return f}return v.find(x=>/en-GB/i.test(x.lang)&&!/female/i.test(x.name))||v.find(x=>/en-GB/i.test(x.lang))||v[0]}
+function speakBrowser(text){return new Promise(res=>{if(!("speechSynthesis"in window)){caption(text);return res()}speechSynthesis.cancel();stopFlag=false;setSpeaking(true);const u=new SpeechSynthesisUtterance(text.replace(/\n+/g," "));u.voice=pickVoice();u.rate=1;u.onboundary=e=>{};caption(text.split("\n")[0]);u.onend=()=>{setSpeaking(false);caption("");res()};speechSynthesis.speak(u)})}
+function split(text){return text.split(/(?<=[.!?])\s+|\n+/).map(s=>s.trim()).filter(Boolean)}
+async function speak(text,list){list=list||split(text);if(SERVER&&VENGINE==="windows"){stopFlag=false;setSpeaking(true);for(const l of list){if(stopFlag)return;caption(l);await speakLine(l)}setSpeaking(false);caption("");return}if(SERVER){try{return await speakNeural(list)}catch(e){console.warn("neural voice unavailable, using browser voice",e)}}return speakBrowser(text)}
+function localAsk(q){q=q.toLowerCase();
+ if(/brief|rundown|plate/.test(q))return D.brief.join("\n");
+ if(/send|post it|publish|delete/.test(q))return "I draft, you approve. I won't send, post or delete anything on my own.";
+ if(/best post|top post/.test(q))return topPost?`Your strongest post was the ${topPost.caption.toLowerCase()}, reaching ${topPost.reach.toLocaleString()} people.`:"Instagram isn't connected yet.";
+ if(/insta|follower|doing|number|reach|stat/.test(q))return D.brief.slice(1,3).join(" ");
+ if(/priorit|first/.test(q))return D.brief[D.brief.length-2];
+ return location.protocol==="file:"?"This page was opened as a file, so I can't think. Close it, double-click start-piper.bat, and use the page it opens at localhost 8790.":"I can't reach my server. Start start-piper.bat and keep the black window open.";}
+async function ask(q){if(!q)return;stopAll();caption("Thinking…");document.body.classList.add("thinking");
+ const done=()=>document.body.classList.remove("thinking");
+ if(!SERVER){done();return speak(localAsk(q))}
+ let res;for(let a=0;a<6&&!res;a++){try{res=await fetch("/ask_stream",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:q})})}catch(e){if(a<5){caption("Piper is starting up, one moment…");await new Promise(r=>setTimeout(r,2500))}}}if(!res)try{throw 0}
+ catch(e){done();return speak("I can't reach my server. Is the black Piper window still open? If not, start start-piper.bat again.")}
+ if(!res.ok||!res.body){done();return speak(`My server answered with an error, code ${res.status}. Please check the black Piper window for details.`)}
+ // sentences arrive one by one; each is voiced as soon as it lands, while the next is prepared
+ const queue=[];let finished=false,wake=null,spoke=0;const push=s=>{queue.push({text:s,wav:SERVER&&VENGINE==="neural"?fetchWav(s).catch(()=>null):null});if(wake){wake();wake=null}};
+ (async()=>{const rd=res.body.getReader(),dec=new TextDecoder();let buf="";
+  try{for(;;){const {value,done:d}=await rd.read();if(d)break;buf+=dec.decode(value,{stream:true});let i;
+   while((i=buf.indexOf("\n"))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!line)continue;const o=JSON.parse(line);if(o.s)push(o.s);else if(o.stage&&!spoke)caption(o.stage)}}}catch(e){}
+  finished=true;if(wake){wake();wake=null}})();
+ stopFlag=false;
+ for(;;){if(stopFlag)break;if(!queue.length){if(finished)break;await new Promise(r=>wake=r);continue}
+  const it=queue.shift();const ab=await it.wav;if(stopFlag)break;   // wait for the voice, then show the words with it
+  if(!spoke){done();setSpeaking(true)}spoke++;caption(it.text);
+  if(ab)await playBuf(ab);else await speakLine(it.text);await new Promise(r=>setTimeout(r,120))}
+ done();if(!stopFlag){setSpeaking(false);caption(spoke?"":"I didn't get an answer that time. Please try again.")}}
+setTimeout(()=>SERVER&&setStatus(),20000);   // the start-up speed check takes a few seconds
+$("veng").onchange=async()=>{await fetch("/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({voice_engine:$("veng").value})});setStatus()};
+$("vcheck").onclick=async()=>{$("vverd").textContent="Checking how fast this PC makes speech…";try{await fetch("/voice/check",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})}catch(e){}setStatus()};
+$("brief").onclick=async()=>{audio();if(speaking){stopAll();return}
+ if(SERVER){try{const j=await (await fetch("/brief")).json();return speak(j.reply,j.sentences)}catch(e){}}
+ speak(D.brief.join("\n"))};
+$("go").onclick=()=>{audio();ask($("q").value);$("q").value=""};
+$("q").onkeydown=e=>{if(e.key==="Enter"){audio();ask($("q").value);$("q").value=""}};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+$("mic").onclick=()=>{audio();stopAll();if(!SR){caption("Voice input needs Chrome or Edge. Type below instead.");return}
+ const rec=new SR();rec.lang=D.voice_lang||"en-GB";rec.interimResults=true;$("mic").classList.add("live");caption("Listening…");
+ rec.onresult=e=>{const t=[...e.results].map(x=>x[0].transcript).join("");caption("“"+t+"”");if(e.results[e.results.length-1].isFinal){rec.stop();ask(t.replace(/^(hey|hi|ok),?\s*(piper|pipe|paper|pepper),?\s*/i,""))}};
+ rec.onend=()=>$("mic").classList.remove("live");rec.onerror=e=>{const why={"no-speech":"I didn't hear anything. Check the right microphone is selected: ⚙ → VOICE → TEST MICROPHONE.",
+  "not-allowed":"I'm not allowed to use the microphone. Click the padlock left of the address bar, set Microphone to Allow, then reload.",
+  "audio-capture":"No microphone found. Plug one in, or check Windows sound settings.",
+  "network":"Speech recognition needs the internet in this browser. Check the connection, or type instead."}[e.error]||("Mic problem: "+e.error);
+  caption(why);speak(why)};rec.continuous=false;rec.maxAlternatives=1;rec.start()};
+// ---------- settings: connections, voice, knowledge ----------
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab,.tp").forEach(x=>x.classList.remove("on"));t.classList.add("on");$(t.dataset.t).classList.add("on")});
+const post=(u,b)=>fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}).then(r=>r.json());
+const LABEL={email:"Your Gmail address",app_password:"16-letter app password",ics_url:"Secret address in iCal format (https://calendar.google.com/...ics)",shop:"Shop name (yourstore)",token:"Access token / key"};
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+async function loadConn(msg){if(!SERVER){$("cards").innerHTML='<div class="sub">Start Piper with start-piper.bat to manage connections.</div>';return}
+ const s=await (await fetch("/connections")).json();$("vault").textContent="Passwords & keys stored in: "+s.vault+" · all access is read-only";
+ $("cards").innerHTML=s.connections.map(c=>`<div class="card" data-id="${c.id}"><h4><span class="dot ${c.connected&&!c.error?"":"off"}"></span>${esc(c.name)}</h4>
+  <div class="meta">${c.connected?(c.error?"":"Connected"+(c.last?" · updated "+esc(c.last):"")+(c.summary?" · "+esc(c.summary):"")):"Not connected"}</div>${c.error?`<div class="err">${esc(c.error)}</div>`:""}
+  <details ${c.connected?"":"open"}><summary>How to connect</summary>${esc(c.help)}</details>${c.link&&!c.connected?`<a class="lnk" href="${c.link[1]}" target="_blank" rel="noopener">↗ ${esc(c.link[0])}</a>`:""}
+  ${c.auth==="file"?`<textarea rows="3" placeholder="Paste the Instagram file contents here" class="imp"></textarea><div class="btns"><button class="ghost" data-a="import">IMPORT</button></div>`:
+   c.fields.map(f=>`<input type="${/password|secret|token/.test(f)?"password":"text"}" placeholder="${c.connected?"saved (leave blank to keep)":LABEL[f]}" data-f="${f}" autocomplete="off">`).join("")+
+   `<div class="btns"><button data-a="save">SAVE${c.auth==="token"?" & CONNECT":""}</button>${c.connected?'<button class="ghost" data-a="refresh">REFRESH</button><button class="ghost" data-a="disc">DISCONNECT</button>':""}</div>`}
+  </div>`).join("")+(msg?`<div class="sub">${esc(msg)}</div>`:"");
+ document.querySelectorAll(".card button").forEach(b=>b.onclick=async()=>{const card=b.closest(".card"),id=card.dataset.id,a=b.dataset.a;b.textContent="…";let r;
+  if(a==="save"){const fields={};card.querySelectorAll("input").forEach(i=>fields[i.dataset.f]=i.value);r=await post("/connections/save",{id,fields})}
+  
+  if(a==="refresh")r=await post("/connections/refresh",{id});
+  if(a==="disc"){if(!confirm("Disconnect "+id+"? Piper will forget its login."))return loadConn();r=await post("/connections/disconnect",{id})}
+  if(a==="import")r=await post("/connections/import",{text:card.querySelector(".imp").value});
+  loadConn(r&&r.message);if(r&&r.ok)setTimeout(()=>location.reload(),1800)})}
+$("refall").onclick=async()=>{$("refall").textContent="REFRESHING…";await post("/connections/refresh",{id:"all"});location.reload()};
+async function setStatus(){loadConn();if(!SERVER){$("vstat").textContent="Open via start-piper.bat for the built-in voice and knowledge folder.";return}
+ try{const s=await (await fetch("/status")).json();const v=s.voice,k=s.knowledge;
+  $("vstat").textContent=v.ok?"Built-in neural voice: ready":"Built-in voice: "+(v.why||"off")+" (using browser voice)";
+  VENGINE=v.engine==="fast"?"neural":(v.engine||"neural");$("veng").value=v.setting||"auto";$("vverd").textContent=v.verdict||"";
+  if(v.voices&&defVoice===null){defVoice=v.voice;defSpeed=v.speed||1;$("vsel").innerHTML=Object.entries(v.voices).map(([id,n])=>`<option value="${id}" ${id===v.voice?"selected":""}>${n}</option>`).join("");$("vspeed").value=defSpeed;showDef()}
+  $("kfolder").value=$("kfolder").value||k.folder;wikiStatus();if(k.tables)fetch("/schema").then(r=>r.json()).then(showTables);$("kstat").textContent=k.ok?`${k.files} files learned · ${k.chunks} passages · ${k.built}${k.stale?" · changed, press LEARN":""}`:"Nothing learned yet";}catch(e){}}
+$("gear").onclick=()=>{$("drawer").classList.toggle("open");setStatus()};
+$("learn").onclick=async()=>{$("kstat").textContent="Reading your files…";const r=await post("/learn",{folder:$("kfolder").value.trim()});
+ $("kstat").textContent=r.ok?`Learned ${r.files} files (${r.chunks} passages). Ask me anything about them.`:r.error;if(r.ok){audio();speak(`Done. I've read ${r.files} files. Ask me anything about them.`)}};
+let defVoice=null,defSpeed=1;
+function previewVoice(){audio();stopAll();const v=$("vsel").value,sp=parseFloat($("vspeed").value),t=`Good evening, ${D.owner||"sir"}. This is how I sound. Everything is running smoothly.`;
+ setSpeaking(true);caption(t);fetch("/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t,voice:v,speed:sp})}).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>AC.decodeAudioData(b)).then(playBuf).catch(()=>caption("That voice couldn't play.")).finally(()=>{setSpeaking(false);caption("")})}
+function showDef(){const n=$("vsel").querySelector(`option[value="${defVoice}"]`);$("vdefl").textContent="★ Default voice: "+(n?n.textContent:defVoice)+" · speed "+defSpeed;$("vdef").textContent=$("vsel").value===defVoice&&parseFloat($("vspeed").value)===defSpeed?"✓ DEFAULT":"★ SET AS DEFAULT"}
+async function upload(file){if(!file)return;$("upstat").textContent=`Uploading ${file.name} (${(file.size/1048576).toFixed(1)} MB)…`;
+ try{const r=await (await fetch("/upload",{method:"POST",headers:{"X-Filename":encodeURIComponent(file.name)},body:file})).json();
+  if(!r.ok){$("upstat").textContent=r.error;return}
+  $("upstat").textContent=`✓ ${r.uploaded} received`+(r.files?`: ${r.files} files, ${r.tables} database tables, ${r.chunks} passages.`:".")+(r.wiki&&r.wiki.ok?` Importing Wikipedia data in the background…`:"")+(r.zim?` Added to Piper's libraries, ready to use now.`:"");if(r.wiki)wikiStatus();showTables(r.schema);setStatus();
+  audio();speak(`Done. I've read ${r.uploaded.replace(/[_.]/g," ")}`+(r.tables?`, including ${r.tables} database tables`:"")+`. Ask me anything about it.`)}catch(e){$("upstat").textContent="Upload failed: "+e}}
+async function brainStatus(){try{const s=await (await fetch("/brain/status")).json();
+ const names={ollama:`Ollama · ${s.model}`,builtin:`Built-in brain · ${s.model}`+(s.engine?` (${s.engine==="gpu"?"graphics card":"processor"})`:"")};
+ $("bstat").innerHTML=s.backend?`● Thinking with <b>${esc(names[s.backend])}</b>. ${s.turns?`Remembering ${s.turns} exchange${s.turns>1?"s":""}.`:""}${s.first_words!=null?`<br>Last reply: started speaking after <b>${s.first_words}s</b>, finished after ${s.finished}s.`+(s.speed?`<br><span style="opacity:.75">Where the time went: looking things up ${s.facts_s??"?"}s · loading the model ${s.speed.load_s}s · reading ${s.speed.read_tokens} tokens ${s.speed.read_s}s · writing ${s.speed.write_tps} tokens/s</span>`+(s.speed.load_s>3?"<br>⚠ The model was being loaded from disk. That only happens after 30 idle minutes or when switching models.":"")+(s.speed.read_s>3?"<br>⚠ Reading is slow on this PC: a smaller model (7b or 3b) will help most.":"")+(s.speed.write_tps&&s.speed.write_tps<6?"<br>⚠ Writing under 6 tokens/s is slower than speech: try a smaller model.":""):"")+(s.first_words>6&&s.backend==="ollama"&&!s.speed?" To speed up, try a smaller model below (for example a 7b one).":""):""}`+`<br>👁 Screen companion (hold Ctrl+Alt anywhere): ${s.vision_model?`seeing with <b>${esc(s.vision_model)}</b>${s.see_first!=null?`, last answer started after ${s.see_first}s`:""}.`:"no vision model yet. Run install-companion.bat."}`:`○ No brain available, so Piper is using pattern answers. ${esc(s.error||"Start Ollama, or run install.bat for the built-in brain.")}`;
+ $("bsel").value=s.setting;
+ if(s.memory){const k=s.memory.by_kind||{};$("mems").textContent=`${s.memory.total} saved: ${k.fact||0} facts, ${k.preference||0} preferences, ${k.lesson||0} lessons from corrections · ${s.memory.sessions} sessions so far.`}$("osel").innerHTML=`<option value="">Best available</option>`+s.ollama_models.map(m=>`<option ${m===s.ollama_model?"selected":""}>${esc(m)}</option>`).join("");
+ $("omwrap").style.display=s.ollama_models.length?"":"none";
+ if(!$("script").value){const t=await (await fetch("/brain/script")).json();$("script").value=t.text}}catch(e){
+ let why="I can't reach my server. Start start-piper.bat and keep the black window open.";
+ try{const r=await fetch("/version");if(r.status===404)why="An OLD copy of Piper is still running and answering. Close every black Piper window (or restart the PC), then start start-piper.bat once.";else why="My server had an error: "+e.message}catch(_){}
+ $("bstat").textContent="⚠ "+why}}
+$("bsel").onchange=async()=>{await post("/brain/settings",{brain:$("bsel").value});brainStatus()};
+$("osel").onchange=async()=>{await post("/brain/settings",{ollama_model:$("osel").value});brainStatus()};
+$("breset").onclick=async()=>{await post("/brain/reset",{});brainStatus();speak("Fresh start. What's on your mind?")};
+$("ssave").onclick=async()=>{await post("/brain/script",{text:$("script").value});$("sstat").textContent=" ✓ saved";setTimeout(()=>$("sstat").textContent="",2500)};
+document.querySelector('.tab[data-t="tb"]').addEventListener("click",brainStatus);
+// ---- microphone tester: shows whether sound reaches the browser, and from which device ----
+let mstream=null,mraf=null;
+$("mtest").onclick=async()=>{
+ if(mstream){mstream.getTracks().forEach(t=>t.stop());mstream=null;cancelAnimationFrame(mraf);$("mbar").style.width="0";$("mtest").textContent="🎙 TEST MICROPHONE";return}
+ try{mstream=await navigator.mediaDevices.getUserMedia({audio:true})}
+ catch(e){$("mstat").innerHTML=e.name==="NotAllowedError"?"⚠ Microphone blocked. Click the padlock left of the address bar → Microphone → Allow, then reload the page.":e.name==="NotFoundError"?"⚠ No microphone found. Plug one in, or check Windows → Settings → System → Sound → Input.":"⚠ "+esc(e.message);return}
+ $("mtest").textContent="■ STOP TEST";audio();
+ const tr=mstream.getAudioTracks()[0],devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="audioinput");
+ const src=AC.createMediaStreamSource(mstream),an=AC.createAnalyser();an.fftSize=1024;src.connect(an);const buf=new Uint8Array(an.fftSize);let peak=0,t0=Date.now();
+ const loop=()=>{an.getByteTimeDomainData(buf);let m=0;for(const v of buf)m=Math.max(m,Math.abs(v-128));const lvl=Math.min(100,m/1.0);peak=Math.max(peak,lvl);$("mbar").style.width=lvl+"%";
+  const secs=(Date.now()-t0)/1000;
+  $("mstat").innerHTML=`Listening with: <b>${esc(tr.label||"default microphone")}</b><br>`+(peak>12?"✓ Sound is getting through. If voice commands still fail, this mic is fine, so see the tip below.":secs>4?"⚠ Silence. This mic isn't hearing you. Pick a different one in Windows: Settings → System → Sound → Input, or unmute it.":"Say something…")+
+   (devs.length>1?`<br><span style="opacity:.75">Microphones on this PC: ${devs.map(d=>esc(d.label||"unnamed")).join(" · ")}</span>`:"")+
+   `<br><span style="opacity:.75">Tip: Edge uses the mic chosen in Edge → Settings → Cookies and site permissions → Microphone. Make sure the same one is selected there.</span>`;
+  mraf=requestAnimationFrame(loop)};loop()};
+let wpoll=null;
+async function wikiStatus(){try{const w=await (await fetch("/wiki/status")).json();$("won").checked=w.online;$("wsave").checked=w.save;
+ let s=(w.libraries&&w.libraries.length?`Libraries: `+w.libraries.map(l=>l.error?`${l.name} ⚠`:`${l.name} (${l.articles.toLocaleString()})`).join(", ")+". ":"")+`${w.articles.toLocaleString()} saved articles.`;
+ if(w.running){s+=` Importing ${w.file}: ${w.done.toLocaleString()} so far…`;if(!wpoll)wpoll=setInterval(wikiStatus,2000)}
+ else{if(wpoll){clearInterval(wpoll);wpoll=null;if(w.finished)speak(`${w.finished} into my Wikipedia memory.`)}if(w.finished)s+=` ✓ ${w.finished}.`}
+ if(w.error)s+=` ⚠ ${w.error}`;$("wstat").textContent=s;
+ fetch("/wiki/online").then(r=>r.json()).then(o=>{$("wstat").textContent=$("wstat").textContent.replace(/ · (online|offline).*$/,"")+(o.online?" · online ●":" · offline (using stored knowledge only)")})}catch(e){$("wstat").textContent="Server not running."}}
+$("won").onchange=()=>post("/wiki/settings",{wiki_online:$("won").checked});
+$("wsave").onchange=()=>post("/wiki/settings",{wiki_save:$("wsave").checked});
+$("wimp").onclick=async()=>{const r=await post("/wiki/import",{path:$("wpath").value});if(!r.ok){$("wstat").textContent=r.error;return}if(r.zims)speak(`Got it. ${r.zims} libraries added, ready to use.`);wikiStatus()};
+$("upfile").onchange=e=>upload(e.target.files[0]);
+["dragover","dragenter"].forEach(ev=>$("drop").addEventListener(ev,e=>{e.preventDefault();$("drop").classList.add("over")}));
+["dragleave","drop"].forEach(ev=>$("drop").addEventListener(ev,e=>{e.preventDefault();$("drop").classList.remove("over")}));
+$("drop").addEventListener("drop",e=>upload(e.dataTransfer.files[0]));
+function showTables(sc){if(!sc||!sc.length){$("tables").textContent="No database yet.";return}
+ $("tables").innerHTML=sc.map(t=>`<div><span class="tbl" data-t="${esc(t.table)}">${esc(t.table)}</span> · ${t.rows.toLocaleString()} rows · <span style="opacity:.7">${esc(t.columns.join(", "))}</span></div>`).join("");
+ document.querySelectorAll(".tbl").forEach(x=>x.onclick=()=>{$("sql").value=`SELECT * FROM "${x.dataset.t}" LIMIT 20`;$("runsql").click()})}
+$("runsql").onclick=async()=>{const r=await post("/query",{sql:$("sql").value});
+ $("sqlout").innerHTML=r.ok?`<table><tr>${r.columns.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>${r.rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table><div class="sub">${r.rows.length} rows${r.truncated?" (first 200)":""} · ${esc(r.db)}</div>`:`<div class="err">${esc(r.error)}</div>`};
+$("vsel").onchange=()=>{previewVoice();showDef()};$("vspeed").onchange=()=>showDef();$("vtest").onclick=previewVoice;
+$("vdef").onclick=async()=>{const r=await post("/settings",{voice:$("vsel").value,voice_speed:parseFloat($("vspeed").value)});defVoice=r.config.voice;defSpeed=r.config.voice_speed;showDef();
+ const n=$("vsel").selectedOptions[0].textContent.split(" (")[0];audio();speak(`Done. I'll use the ${n} voice from now on.`)};
+setStatus();
+caption(D.greeting+" Systems online.");setTimeout(()=>{if(!speaking)caption("")},5000);
+</script></body></html>

@@ -1,0 +1,29 @@
+PIPER - complete package
+========================
+
+This package contains ONLY Piper's program. It never contains your data,
+so it is always safe to copy over your existing Piper folder.
+Your data stays untouched: brain, backups, connectors, knowledge, wiki, models,
+config.json, connections.json, priorities.md, CLAUDE.md.
+
+TO INSTALL OR UPDATE
+1. Close Piper (close every black Piper window).
+2. Open this zip. Inside is a folder called "piper". Open it.
+3. Select everything inside it (Ctrl+A) and copy (Ctrl+C).
+4. Open your Piper folder (the one with start-piper.bat) and paste (Ctrl+V).
+   Choose "Replace the files in the destination".
+5. Double-click start-piper.bat.
+
+WHAT HAPPENS ON THE FIRST START
+- One time: the voice engine is set back to the standard one (fixes the crashes).
+- Piper starts, and opens Edge by itself once it is ready to answer.
+- A small "Piper setup" window may run in the background for big downloads
+  (web search, faster brain, screen companion). Piper works meanwhile.
+
+IF SOMETHING IS WRONG
+- Double-click check-piper.bat and upload the piper-check.txt file it makes.
+
+UPDATING LATER
+Download the new piper-complete.zip (leave it in Downloads), close Piper, then double-click update-piper.bat.
+It always uses the NEWEST piper-complete zip in Downloads and puts every file in the right place.
+The start-up window shows 'version:' so you can see which build is running.

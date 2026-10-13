@@ -1,0 +1,6 @@
+{
+  "_comment": "Easiest: add Metricool on claude.ai (Customize > Connectors > Add custom connector) and Claude Code inherits it. Or rename this file to .mcp.json.",
+  "mcpServers": {
+    "metricool": {"type": "http", "url": "https://ai.metricool.com/mcp"}
+  }
+}
